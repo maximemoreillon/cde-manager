@@ -1,0 +1,34 @@
+stages:
+  - containerization
+
+variables:
+  APPLICATION_NAME: cde-manager
+  CONTAINER_IMAGE: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}
+  CONTAINER_IMAGE_TAGGED: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}:${CI_COMMIT_SHORT_SHA}
+
+image: moreillon/ci-dind
+services:
+  - name: docker:19.03.12-dind
+
+
+containerization:
+  only:
+    - master
+  stage: containerization
+  tags:
+    - dind
+  before_script:
+    - echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin
+  script:
+    # Building
+    - docker build -t ${CONTAINER_IMAGE} .
+    # Tagging
+    - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE_TAGGED}
+    # Pushing
+    - docker push ${CONTAINER_IMAGE}
+    - docker push ${CONTAINER_IMAGE_TAGGED}
+    # cleanup
+    - docker image rm ${CONTAINER_IMAGE}
+    - docker image rm ${CONTAINER_IMAGE_TAGGED}
+
+
