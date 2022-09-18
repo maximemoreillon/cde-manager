@@ -7,13 +7,16 @@ const CDE = require('../models/environment')
 
 exports.create_item = async (req, res, next) => {
     try {
-        const {username, password} = req.body
-        const newCde = await CDE.create({})
 
-        const name = `cde-${newCde._id}`
+        const user_id = res.locals.user._id
 
-        const podSettings = generatePodSettings({ name, username, password})
-        const serviceSettings = generateServiceSettings({name})
+        const {username, password, name} = req.body
+        const newCde = await CDE.create({ name, user_id })
+
+        const resource_name = `cde-${newCde._id}`
+
+        const podSettings = generatePodSettings({ name: resource_name, username, password})
+        const serviceSettings = generateServiceSettings({ name: resource_name })
 
         await api.createNamespacedPod(namespace, podSettings)
         await api.createNamespacedService(namespace, serviceSettings)
@@ -29,7 +32,10 @@ exports.create_item = async (req, res, next) => {
 
 exports.get_items = async (req, res, next) => {
     try {
-        const cdes = await CDE.find({})
+
+        const user_id = res.locals.user._id
+
+        const cdes = await CDE.find({ user_id })
 
         res.send(cdes)
     } catch (error) {

@@ -1,7 +1,10 @@
 const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
+const auth = require('@moreillon/express_identification_middleware')
 const db = require('./db')
+const config = require('./config')
+
 const { version, author } = require('./package.json')
 
 dotenv.config()
@@ -10,6 +13,7 @@ const app = express()
 
 const {
     EXPRESS_PORT = 80,
+    IDENTIFICATION_URL,
 } = process.env
 
 db.connect()
@@ -23,15 +27,15 @@ app.get('/', (req, res) => {
         author,
         version,
         mongodb: { url: db.url, db: db.db },
-        // auth: {
-        //     identification_url: IDENTIFICATION_URL,
-        //     group_auth: {
-        //         url: GROUP_AUTHORIZATION_URL,
-        //         groups: AUTHORIZED_GROUPS
-        //     }
-        // }
+        config,
+        auth: {
+            identification_url: IDENTIFICATION_URL,
+        }
     })
 })
+
+if (IDENTIFICATION_URL) app.use(auth({ url: IDENTIFICATION_URL }))
+
 
 
 app.use('/environments', require('./routes/environments.js')) // alias

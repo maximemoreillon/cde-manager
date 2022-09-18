@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@kubernetes/client-node": "^0.17.1",
+    "@moreillon/express_identification_middleware": "^1.1.0",
     "axios": "^0.27.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.2",
