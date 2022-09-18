@@ -22,10 +22,7 @@ app.get('/', (req, res) => {
         application_name: 'CDE manager API',
         author,
         version,
-        // databases: {
-        //     mongodb: { url: mongodb_url, db: mongodb_db },
-        //     influxdb: { url: influxdb_url, db: influxdb_db },
-        // },
+        mongodb: { url: db.url, db: db.db },
         // auth: {
         //     identification_url: IDENTIFICATION_URL,
         //     group_auth: {
@@ -36,7 +33,8 @@ app.get('/', (req, res) => {
     })
 })
 
-app.use('/pods', require('./routes/pods.js'))
+
+app.use('/environments', require('./routes/environments.js')) // alias
 
 
 

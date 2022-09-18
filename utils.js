@@ -1,26 +1,36 @@
-const {api} = require('./k8s')
+const { cde_image } = require('./config')
 
-exports.generatePodSettings = ({name}) => {
+exports.generatePodSettings = (options) => {
 
-
+    const { name, username, password} = options
     return {
-        "apiVersion": "v1",
-        "kind": "Pod",
-        "metadata": {
-            "name": name,
-            "labels": {
-                "app": name
+        apiVersion: "v1",
+        kind: "Pod",
+        metadata: {
+            name: name,
+            labels: {
+                app: name
             }
         },
-        "spec": {
-            "containers": [
+        spec: {
+            containers: [
                 {
-                    "name": name,
-                    "image": "nginx",
-                    "ports": [
+                    name: name,
+                    image: cde_image,
+                    ports: [
                         {
-                            "containerPort": 80
+                            containerPort: 22
                         }
+                    ],
+                    env: [
+                        {
+                            name: 'USERNAME',
+                            value: username,
+                        },
+                        {
+                            name: 'PASSWORD',
+                            value: password,
+                        },
                     ]
                 }
             ]
@@ -31,24 +41,22 @@ exports.generatePodSettings = ({name}) => {
 
 exports.generateServiceSettings = ({ name }) => {
 
-
     return {
-        "apiVersion": "v1",
-        "kind": "Service",
-        "metadata": {
-            "name": name
+        apiVersion: "v1",
+        kind: "Service",
+        metadata: {
+            name: name
         },
-        "spec": {
-            "ports": [
+        spec: {
+            ports: [
                 {
-                    "port": 80,
-                    // "nodePort": "${K8S_SERVICE_PORT}"
+                    port: 22,
                 }
             ],
-            "selector": {
-                "app": name
+            selector: {
+                app: name
             },
-            "type": "NodePort"
+            type: "NodePort"
         }
     }
     

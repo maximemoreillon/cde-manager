@@ -1,5 +1,5 @@
 stages:
-  - containerization
+  - build
 
 variables:
   APPLICATION_NAME: cde-manager
@@ -11,10 +11,10 @@ services:
   - name: docker:19.03.12-dind
 
 
-containerization:
+build:
+  stage: build
   only:
     - master
-  stage: containerization
   tags:
     - dind
   before_script:

@@ -1,33 +1,33 @@
 const { api } = require('../k8s')
 const { namespace } = require('../config')
 const { generatePodSettings, generateServiceSettings } = require('../utils')
-const CDE = require('../models/cde')
+const CDE = require('../models/environment')
 
 
 
-exports.create_pod = async (req, res, next) => {
+exports.create_item = async (req, res, next) => {
     try {
-        const properties = req.body
-        const newCde = await CDE.create(properties)
+        const {username, password} = req.body
+        const newCde = await CDE.create({})
 
         const name = `cde-${newCde._id}`
 
-        const podSettings = generatePodSettings({ name })
-        const serviceSettings = generateServiceSettings({ name })
+        const podSettings = generatePodSettings({ name, username, password})
+        const serviceSettings = generateServiceSettings({name})
 
         await api.createNamespacedPod(namespace, podSettings)
         await api.createNamespacedService(namespace, serviceSettings)
 
         // Todo:  PVC
 
-        console.log(`Created Pod ${newCde._id}`)
+        console.log(`Created CDE ${newCde._id}`)
         res.send(newCde)
     } catch (error) {
         next(error)
     }
 }
 
-exports.get_pods = async (req, res, next) => {
+exports.get_items = async (req, res, next) => {
     try {
         const cdes = await CDE.find({})
 
@@ -38,7 +38,7 @@ exports.get_pods = async (req, res, next) => {
 
 }
 
-exports.get_pod = async (req, res, next) => {
+exports.get_item = async (req, res, next) => {
     try {
         const { _id } = req.params
         const cde = await CDE.findById(_id)
@@ -46,14 +46,16 @@ exports.get_pod = async (req, res, next) => {
 
         const { body: pod } = await api.readNamespacedPod(name, namespace)
         const { body: service } = await api.readNamespacedService(name, namespace)
-        res.send({...cde, service, pod})
+
+        res.send({ ...cde.toObject(), service, pod})
+
     } catch (error) {
         next(error)
     }
 
 }
 
-exports.delete_pod = async (req, res, next) => {
+exports.delete_item = async (req, res, next) => {
     try {
         const {_id} = req.params
         const deletedCde = await CDE.findByIdAndDelete(_id)
@@ -62,7 +64,7 @@ exports.delete_pod = async (req, res, next) => {
         await api.deleteNamespacedPod(name, namespace)
         await api.deleteNamespacedService(name, namespace)
 
-        console.log(`Deleted Pod ${_id}`)
+        console.log(`Deleted CDE ${_id}`)
         res.send(deletedCde)
     } catch (error) {
         next(error)
