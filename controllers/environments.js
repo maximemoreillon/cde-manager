@@ -1,6 +1,9 @@
-const { api } = require('../k8s')
+const { api, appsApi } = require('../k8s')
 const { namespace } = require('../config')
-const { generatePodSettings, generateServiceSettings } = require('../utils')
+const { 
+    generateServiceSettings, 
+    generateDeploymentSettings
+} = require('../utils')
 const CDE = require('../models/environment')
 
 
@@ -15,13 +18,13 @@ exports.create_item = async (req, res, next) => {
 
         const resource_name = `cde-${newCde._id}`
 
-        const podSettings = generatePodSettings({ name: resource_name, username, password})
+        const deploymentSettings = generateDeploymentSettings({ name: resource_name, username, password })
         const serviceSettings = generateServiceSettings({ name: resource_name })
 
-        await api.createNamespacedPod(namespace, podSettings)
+        await appsApi.createNamespacedDeployment(namespace, deploymentSettings)
         await api.createNamespacedService(namespace, serviceSettings)
 
-        // Todo:  PVC
+        // Todo:  PVC, secret
 
         console.log(`Created CDE ${newCde._id}`)
         res.send(newCde)
@@ -50,10 +53,11 @@ exports.get_item = async (req, res, next) => {
         const cde = await CDE.findById(_id)
         const name = `cde-${_id}`
 
-        const { body: pod } = await api.readNamespacedPod(name, namespace)
+        
+        const { body: deployment } = await appsApi.readNamespacedDeployment(name, namespace)
         const { body: service } = await api.readNamespacedService(name, namespace)
 
-        res.send({ ...cde.toObject(), service, pod})
+        res.send({ ...cde.toObject(), service, deployment })
 
     } catch (error) {
         next(error)
@@ -67,7 +71,7 @@ exports.delete_item = async (req, res, next) => {
         const deletedCde = await CDE.findByIdAndDelete(_id)
         const name = `cde-${_id}`
 
-        await api.deleteNamespacedPod(name, namespace)
+        await appsApi.deleteNamespacedDeployment(name, namespace)
         await api.deleteNamespacedService(name, namespace)
 
         console.log(`Deleted CDE ${_id}`)

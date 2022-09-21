@@ -1,49 +1,64 @@
 const { cde_image } = require('./config')
 
-exports.generatePodSettings = (options) => {
+exports.generateDeploymentSettings = (options) => {
 
-    const { name, username, password} = options
+    const { name, username, password } = options
+
+
     return {
-        apiVersion: "v1",
-        kind: "Pod",
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
         metadata: {
             name: name,
-            labels: {
-                app: name
-            }
         },
         spec: {
-            containers: [
-                {
-                    name: name,
-                    image: cde_image,
-                    ports: [
+            replicas: 1,
+                selector: {
+                matchLabels: {
+                        app: name
+                }
+            },
+            template: {
+                metadata: {
+                    labels: {
+                        app: name
+                    }
+                },
+                spec: {
+                    containers: [
                         {
-                            containerPort: 22
+                            name: name,
+                            image: cde_image,
+                            ports: [
+                                {
+                                    containerPort: 22
+                                }
+                            ],
+                            // TODO: envFrom secret
+                            env: [
+                                {
+                                    name: 'USERNAME',
+                                    value: username,
+                                },
+                                {
+                                    name: 'PASSWORD',
+                                    value: password,
+                                },
+                            ]
                         }
-                    ],
-                    env: [
-                        {
-                            name: 'USERNAME',
-                            value: username,
-                        },
-                        {
-                            name: 'PASSWORD',
-                            value: password,
-                        },
                     ]
                 }
-            ]
+            }
         }
     }
-    
 }
+
 
 exports.generateServiceSettings = ({ name }) => {
 
     return {
-        apiVersion: "v1",
-        kind: "Service",
+        apiVersion: 'v1',
+        kind: 'Service',
         metadata: {
             name: name
         },
@@ -56,7 +71,7 @@ exports.generateServiceSettings = ({ name }) => {
             selector: {
                 app: name
             },
-            type: "NodePort"
+            type: 'NodePort'
         }
     }
     
