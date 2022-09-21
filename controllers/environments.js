@@ -3,7 +3,8 @@ const { namespace } = require('../config')
 const { 
     generateServiceSettings, 
     generateDeploymentSettings,
-    generateSecretSettings
+    generateSecretSettings,
+    generatePvcSettings
 } = require('../utils')
 const CDE = require('../models/environment')
 
@@ -21,22 +22,22 @@ exports.create_item = async (req, res, next) => {
 
         const k8sResourceOptions = { name: resource_name, username, password }
 
+        const secretSettings = generateSecretSettings(k8sResourceOptions)
+        const pvcSettings = generatePvcSettings(k8sResourceOptions)
         const deploymentSettings = generateDeploymentSettings(k8sResourceOptions)
         const serviceSettings = generateServiceSettings(k8sResourceOptions)
-        const secretSettings = generateSecretSettings(k8sResourceOptions)
 
-        console.log(secretSettings)
-
+        console.log(deploymentSettings.spec.template.spec.containers[0])
+        
         await api.createNamespacedSecret(namespace, secretSettings)
         console.log(`Secret ${resource_name} created`)
+        await api.createNamespacedPersistentVolumeClaim(namespace, pvcSettings)
+        console.log(`PVC ${resource_name} created`)
         await appsApi.createNamespacedDeployment(namespace, deploymentSettings)
         console.log(`Deployment ${resource_name} created`)
         await api.createNamespacedService(namespace, serviceSettings)
         console.log(`Service ${resource_name} created`)
 
-        // Todo:  PVC, secret
-
-        console.log(`Created CDE ${newCde._id}`)
         res.send(newCde)
     } catch (error) {
         next(error)
@@ -84,6 +85,7 @@ exports.delete_item = async (req, res, next) => {
         await appsApi.deleteNamespacedDeployment(name, namespace)
         await api.deleteNamespacedService(name, namespace)
         await api.deleteNamespacedSecret(name, namespace)
+        await api.deleteNamespacedPersistentVolumeClaim(name, namespace)
 
 
         console.log(`Deleted CDE ${_id}`)

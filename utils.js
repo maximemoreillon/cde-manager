@@ -1,8 +1,12 @@
-const { cde_image } = require('./config')
+const { 
+    container_image, 
+    container_port,
+    pvc_size,
+} = require('./config')
 
 exports.generateDeploymentSettings = (options) => {
 
-    const { name } = options
+    const { name, username } = options
 
 
     return {
@@ -28,10 +32,10 @@ exports.generateDeploymentSettings = (options) => {
                     containers: [
                         {
                             name: name,
-                            image: cde_image,
+                            image: container_image,
                             ports: [
                                 {
-                                    containerPort: 22
+                                    containerPort: container_port
                                 }
                             ],
                             envFrom: [
@@ -40,7 +44,22 @@ exports.generateDeploymentSettings = (options) => {
                                         name: name
                                     }
                                 }
+                            ],
+                             volumeMounts: [
+                                 {
+                                    mountPath: `/home/${username}/data`,
+                                    // mountPath: `/config`, // For code-server
+                                    name: name
+                                 }
                             ]
+                        }
+                    ],
+                     volumes: [
+                        {
+                            name: name,
+                            persistentVolumeClaim: {
+                                claimName: name,
+                            }
                         }
                     ]
                 }
@@ -61,7 +80,7 @@ exports.generateServiceSettings = ({ name }) => {
         spec: {
             ports: [
                 {
-                    port: 22,
+                    port: container_port,
                 }
             ],
             selector: {
@@ -87,9 +106,44 @@ exports.generateSecretSettings = (options) => {
         },
         type: 'Opaque',
         stringData: {
+
             USERNAME: username,
-            PASSWORD: password
+            PASSWORD: password,
+
+            // Code-server stuff
+            PUID: '1000',
+            PGID: '1000',
+            TZ: 'Asia/Tokyo',
+            SUDO_PASSWORD: password,
+
         }
     }
     
+}
+
+
+
+exports.generatePvcSettings = (options) => {
+
+    const { name } = options
+
+
+    return {
+        apiVersion: 'v1',
+        kind: 'PersistentVolumeClaim',
+        metadata: {
+            name: name
+        },
+        spec: {
+            accessModes: [
+                'ReadWriteMany'
+            ],
+            resources: {
+                requests: {
+                    storage: pvc_size
+                }
+            }
+        }
+    }
+
 }
