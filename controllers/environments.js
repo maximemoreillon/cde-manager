@@ -2,7 +2,8 @@ const { api, appsApi } = require('../k8s')
 const { namespace } = require('../config')
 const { 
     generateServiceSettings, 
-    generateDeploymentSettings
+    generateDeploymentSettings,
+    generateSecretSettings
 } = require('../utils')
 const CDE = require('../models/environment')
 
@@ -18,11 +19,20 @@ exports.create_item = async (req, res, next) => {
 
         const resource_name = `cde-${newCde._id}`
 
-        const deploymentSettings = generateDeploymentSettings({ name: resource_name, username, password })
-        const serviceSettings = generateServiceSettings({ name: resource_name })
+        const k8sResourceOptions = { name: resource_name, username, password }
 
+        const deploymentSettings = generateDeploymentSettings(k8sResourceOptions)
+        const serviceSettings = generateServiceSettings(k8sResourceOptions)
+        const secretSettings = generateSecretSettings(k8sResourceOptions)
+
+        console.log(secretSettings)
+
+        await api.createNamespacedSecret(namespace, secretSettings)
+        console.log(`Secret ${resource_name} created`)
         await appsApi.createNamespacedDeployment(namespace, deploymentSettings)
+        console.log(`Deployment ${resource_name} created`)
         await api.createNamespacedService(namespace, serviceSettings)
+        console.log(`Service ${resource_name} created`)
 
         // Todo:  PVC, secret
 
@@ -73,6 +83,8 @@ exports.delete_item = async (req, res, next) => {
 
         await appsApi.deleteNamespacedDeployment(name, namespace)
         await api.deleteNamespacedService(name, namespace)
+        await api.deleteNamespacedSecret(name, namespace)
+
 
         console.log(`Deleted CDE ${_id}`)
         res.send(deletedCde)

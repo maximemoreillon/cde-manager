@@ -2,7 +2,7 @@ const { cde_image } = require('./config')
 
 exports.generateDeploymentSettings = (options) => {
 
-    const { name, username, password } = options
+    const { name } = options
 
 
     return {
@@ -34,16 +34,12 @@ exports.generateDeploymentSettings = (options) => {
                                     containerPort: 22
                                 }
                             ],
-                            // TODO: envFrom secret
-                            env: [
+                            envFrom: [
                                 {
-                                    name: 'USERNAME',
-                                    value: username,
-                                },
-                                {
-                                    name: 'PASSWORD',
-                                    value: password,
-                                },
+                                    secretRef: {
+                                        name: name
+                                    }
+                                }
                             ]
                         }
                     ]
@@ -72,6 +68,27 @@ exports.generateServiceSettings = ({ name }) => {
                 app: name
             },
             type: 'NodePort'
+        }
+    }
+    
+}
+
+
+exports.generateSecretSettings = (options) => {
+
+    const { name, username, password } = options
+
+
+    return  {
+        apiVersion: 'v1',
+        kind: 'Secret',
+        metadata: {
+            name: name
+        },
+        type: 'Opaque',
+        stringData: {
+            USERNAME: username,
+            PASSWORD: password
         }
     }
     
