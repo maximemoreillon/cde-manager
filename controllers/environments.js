@@ -16,12 +16,12 @@ exports.create_item = async (req, res, next) => {
 
         const user_id = res.locals.user._id
 
-        const resource_name = `cde-${ uuidv4() }`
+        const name = `cde-${ uuidv4() }`
 
         const { username, password } = req.body
 
 
-        const k8sResourceOptions = { name: resource_name, username, password, user_id }
+        const k8sResourceOptions = { name, username, password, user_id }
 
         // Generate JSON version of the manifests
         const secretSettings = generateSecretSettings(k8sResourceOptions)
@@ -35,7 +35,7 @@ exports.create_item = async (req, res, next) => {
         await appsApi.createNamespacedDeployment(namespace, deploymentSettings)
         await api.createNamespacedService(namespace, serviceSettings)
 
-        res.send({ _id: resource_name })
+        res.send({ name })
 
     } catch (error) {
         next(error)
@@ -54,7 +54,6 @@ exports.get_items = async (req, res, next) => {
 
         res.send(items)
 
-        // res.send(cdes)
     } catch (error) {
         next(error)
     }
@@ -63,7 +62,7 @@ exports.get_items = async (req, res, next) => {
 
 exports.get_item = async (req, res, next) => {
     try {
-        const { _id: name} = req.params
+        const { name} = req.params
         
         const { body: deployment } = await appsApi.readNamespacedDeployment(name, namespace)
         const { body: service } = await api.readNamespacedService(name, namespace)
@@ -78,7 +77,7 @@ exports.get_item = async (req, res, next) => {
 
 exports.delete_item = async (req, res, next) => {
     try {
-        const { _id: name } = req.params
+        const { name } = req.params
 
         await appsApi.deleteNamespacedDeployment(name, namespace)
         await api.deleteNamespacedService(name, namespace)

@@ -15,7 +15,7 @@ router.route('/')
     .post(create_item)
     .get(get_items)
 
-router.route('/:_id')
+router.route('/:name')
     .get(get_item)
     .delete(delete_item)
 
