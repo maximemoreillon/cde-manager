@@ -7,7 +7,11 @@ const {
 
 exports.generateDeploymentSettings = (options) => {
 
-    const { name, username, user_id} = options
+    const { 
+        name, 
+        username, 
+        user_id,
+    } = options
 
 
     return {

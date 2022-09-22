@@ -15,6 +15,6 @@ const {
 exports.kubeconfig_path = KUBECONFIG_PATH
 exports.namespace = NAMESPACE
 exports.container_image = CONTAINER_IMAGE
-exports.pvc_size = PVC_SIZE
 exports.container_volume_mount_path = CONTAINER_VOLUME_MOUNT_PATH
 exports.container_port = CONTAINER_PORT
+exports.pvc_size = PVC_SIZE

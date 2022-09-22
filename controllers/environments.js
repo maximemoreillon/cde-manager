@@ -48,7 +48,8 @@ exports.get_items = async (req, res, next) => {
 
         const {_id: user_id, isAdmin} = res.locals.user
 
-        const labelSelector = isAdmin ? undefined : `user_id=${user_id}`
+        //const labelSelector = isAdmin ? undefined : `user_id=${user_id}`
+        const labelSelector = `user_id=${user_id}`
 
         const { body: {items}} = await appsApi.listNamespacedDeployment(namespace, undefined, undefined, undefined, undefined, labelSelector)
 
