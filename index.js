@@ -2,7 +2,6 @@ const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
 const auth = require('@moreillon/express_identification_middleware')
-const db = require('./db')
 const config = require('./config')
 
 const { version, author } = require('./package.json')
@@ -16,7 +15,6 @@ const {
     IDENTIFICATION_URL,
 } = process.env
 
-db.connect()
 
 app.use(express.json())
 app.use(cors())
@@ -26,7 +24,6 @@ app.get('/', (req, res) => {
         application_name: 'CDE manager API',
         author,
         version,
-        mongodb: { url: db.url, db: db.db },
         config,
         auth: {
             identification_url: IDENTIFICATION_URL,

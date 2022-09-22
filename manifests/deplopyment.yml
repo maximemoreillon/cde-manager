@@ -2,7 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx
-  namespace: nginx
+  labels:
+    banana: moreillon
 spec:
   replicas: 1
   selector:

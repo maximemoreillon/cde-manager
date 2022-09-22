@@ -1,12 +1,13 @@
 const { 
     container_image, 
     container_port,
+    container_volume_mount_path,
     pvc_size,
 } = require('./config')
 
 exports.generateDeploymentSettings = (options) => {
 
-    const { name, username } = options
+    const { name, username, user_id} = options
 
 
     return {
@@ -14,12 +15,15 @@ exports.generateDeploymentSettings = (options) => {
         kind: 'Deployment',
         metadata: {
             name: name,
+            labels: {
+                user_id: user_id
+            }
         },
         spec: {
             replicas: 1,
-                selector: {
+            selector: {
                 matchLabels: {
-                        app: name
+                    app: name
                 }
             },
             template: {
@@ -35,7 +39,7 @@ exports.generateDeploymentSettings = (options) => {
                             image: container_image,
                             ports: [
                                 {
-                                    containerPort: container_port
+                                    containerPort: Number(container_port)
                                 }
                             ],
                             envFrom: [
@@ -45,12 +49,11 @@ exports.generateDeploymentSettings = (options) => {
                                     }
                                 }
                             ],
-                             volumeMounts: [
-                                 {
-                                    mountPath: `/home/${username}/data`,
-                                    // mountPath: `/config`, // For code-server
+                            volumeMounts: [
+                                {
+                                    mountPath: container_volume_mount_path.replace('$username', username),
                                     name: name
-                                 }
+                                }
                             ]
                         }
                     ],
@@ -69,19 +72,29 @@ exports.generateDeploymentSettings = (options) => {
 }
 
 
-exports.generateServiceSettings = ({ name }) => {
+exports.generateServiceSettings = (options) => {
+
+    const { name, user_id } = options
 
     return {
         apiVersion: 'v1',
         kind: 'Service',
         metadata: {
-            name: name
+            name: name,
+            labels: {
+                user_id: user_id
+            }
         },
         spec: {
             ports: [
                 {
-                    port: container_port,
-                }
+                    name: 'primary',
+                    port: Number(container_port),
+                },
+                // {
+                //     name: 'dev',
+                //     port: 8080,
+                // },
             ],
             selector: {
                 app: name
